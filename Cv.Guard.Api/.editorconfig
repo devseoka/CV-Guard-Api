@@ -1,0 +1,82 @@
+# .editorconfig
+
+# Root is true to indicate that this is the root .editorconfig file
+root = true
+
+# General settings for all files
+[*]
+# Set the line length to 120 characters
+max_line_length = 120
+
+# Ensure that files end with a new line
+insert_final_newline = true
+
+# Remove trailing whitespace on save
+trim_trailing_whitespace = true
+
+# Use tabs for indentation
+indent_style = tab
+
+# Set the tab width to 4 spaces (or adjust as needed)
+tab_width = 4
+
+# Ensure that line endings are set to LF (Unix-style)
+end_of_line = lf
+
+# Settings for C# files
+[*.cs]
+# Set maximum line length to 120 characters for C# files
+max_line_length = 120
+
+# Use tabs for indentation in C# files
+indent_style = tab
+
+# Set the tab width to 4 spaces for C# files
+tab_width = 4
+
+# Ensure curly braces are on the same line for method declarations, properties, and control statements
+csharp_brace_style = next_line
+
+# Format method declarations with parentheses and return type on the same line
+csharp_method_brace_style = next_line
+
+# Ensure that newlines are added after method and property declarations
+csharp_new_line_before_members = true
+
+# Define the naming convention for C# files
+dotnet_naming_rules.interface_prefix = I  # Prefix interfaces with "I"
+dotnet_naming_rules.enum_case_style = UPPER_SNAKE_CASE  # Use uppercase snake_case for enum values
+
+# Enforce the use of var where type is apparent
+dotnet_style_var_for_built_in_types = true
+
+# Prefer camelCase for private fields
+dotnet_style_private_fields = camel_case
+
+# Use implicit type inference where possible
+csharp_style_var_for_built_in_types = true
+csharp_style_var_when_type_is_apparent = true
+
+# Add a newline between class declarations and members
+csharp_new_line_between_class_declarations_and_members = true
+
+# Prefer explicit `readonly` for fields that are never reassigned
+dotnet_style_readonly_fields = explicit
+
+# Code style preferences
+csharp_style_allow_all_members = true
+csharp_style_indentation = true
+
+# Space after commas
+csharp_space_after_comma = true
+
+# Require spaces around operators
+csharp_space_around_operators = true
+
+# Enforce consistent formatting of braces and indentation
+csharp_brace_style = next_line
+
+# Settings for other common file types (if needed)
+[*.{md,txt}]
+# Set the max line length to 120 for markdown and text files as well
+max_line_length = 120
