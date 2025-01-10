@@ -1,0 +1,6 @@
+@Cv.Guard.Api_HostAddress = http://localhost:5105
+
+GET {{Cv.Guard.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
