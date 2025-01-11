@@ -56,17 +56,10 @@ namespace Cv.Guard.Api.Extensions
 
 		public static IServiceCollection ConfigureRepositories(this IServiceCollection services)
 		{
-			services.TryAddScoped<IUploadRepository, UploadRepository>();
-			services.TryAddScoped<IEmailRepository, EmailRepository>();
-
-			return services;
-		}
-
-		public static IServiceCollection ConfigureValidators(this IServiceCollection services)
-		{
 			services.AddScoped<IUploadRepository, UploadRepository>();
 			services.AddScoped<ILocationRepository, LocationRepository>();
 			services.AddScoped<IEmailRepository, EmailRepository>();
+
 			return services;
 		}
 
