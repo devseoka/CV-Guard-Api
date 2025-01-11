@@ -65,7 +65,7 @@ namespace Cv.Guard.Api.Controllers
 			);
 		}
 
-		[HttpGet]
+		[HttpPost("download")]
 		public async Task<IActionResult> Download([FromBody] EmailRequest request)
 		{
 			emailValidator.ValidateAndThrow(request);

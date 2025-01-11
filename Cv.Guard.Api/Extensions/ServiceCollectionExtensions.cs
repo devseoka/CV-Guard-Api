@@ -49,6 +49,7 @@ namespace Cv.Guard.Api.Extensions
 		{
 			services.AddScoped<IEmailService, EmailService>();
 			services.AddScoped<IUploadService, UploadService>();
+			services.TryAddScoped<ILocationService, LocationService>();
 			return services;
 		}
 
