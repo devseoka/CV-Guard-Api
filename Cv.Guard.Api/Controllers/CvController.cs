@@ -89,7 +89,6 @@ namespace Cv.Guard.Api.Controllers
 
 			await locationRepository.Add(location);
 
-
 			if (!Request.Headers.TryGetValue("X-API-Key", out var key))
 			{
 				throw new UnauthorizedException("API key is required.");
