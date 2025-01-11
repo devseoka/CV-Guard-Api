@@ -1,5 +1,4 @@
 using System.Reflection;
-using Cv.Guard.Api.Configuration;
 using Cv.Guard.Api.Extensions;
 using Cv.Guard.Api.Helpers.Middleware;
 using FluentValidation;
@@ -13,9 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.ConfigureOptions(builder.Configuration);
 builder.Services.ConfigureExternalServices();
 
+string connection =  builder.Configuration.GetConnectionString("DefaultConnection");
+
 var ipStackOpts = builder.Configuration.GetSection("IpStack").Get<IpStackOptions>();
 builder.Services.AddIpStack(ipStackOpts.ApiKey);
 
+builder.Services.ConfigureDbContext(connection);
 builder.Services.ConfigureRepositories();
 builder.Services.ConfigureServices();
 
