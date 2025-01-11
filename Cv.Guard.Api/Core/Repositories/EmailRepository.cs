@@ -1,25 +1,28 @@
 using Cv.Guard.Api.Contracts.Repositories;
 using Cv.Guard.Api.Core.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cv.Guard.Api.Core.Repositories
 {
-	public class EmailRepository : IEmailRepository
+	public class EmailRepository(CvgaContext context) : IEmailRepository
 	{
-		public IQueryable<Email> Emails => throw new NotImplementedException();
+		public IQueryable<Email> Emails => context.Emails;
 
-		public Task<Email> Add(Email email)
+		public async Task<Email> Add(Email email)
 		{
-			throw new NotImplementedException();
+			var entry = context.Emails.Add(email);
+			await context.SaveChangesAsync();
+			return entry.Entity;
 		}
 
-		public Task<IEnumerable<Email>> GetEmails()
+		public async Task<IEnumerable<Email>> GetEmails()
 		{
-			throw new NotImplementedException();
+			return await Emails.ToListAsync();
 		}
 
-		public Task<IEnumerable<Email>> GetEmailsByStatus(bool status)
+		public async Task<IEnumerable<Email>> GetEmailsByStatus(bool status)
 		{
-			throw new NotImplementedException();
+			return await context.Emails.Where(e => e.Status == status).ToListAsync();
 		}
 	}
 }
