@@ -3,19 +3,21 @@ using Cv.Guard.Api.Configuration;
 using Cv.Guard.Api.Contracts.Repositories;
 using Cv.Guard.Api.Contracts.Services;
 using Cv.Guard.Api.Services;
+using IpStack.Models;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using PostmarkDotNet;
 
 namespace Cv.Guard.Api.Extensions
 {
-	public static class ServiceCollectionExtension
+	public static class ServiceCollectionExtensions
 	{
 		public static IServiceCollection ConfigureOptions(
 			this IServiceCollection services,
 			IConfiguration configuration
 		)
 		{
+			services.Configure<IpStackOptions>(configuration.GetSection("IpStack"));
 			services.Configure<AzureBlobConfig>(configuration.GetSection("AzureBlob"));
 			services.Configure<PostmarkConfig>(configuration.GetSection("Postmark"));
 			return services;
