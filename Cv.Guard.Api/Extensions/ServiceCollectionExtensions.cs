@@ -5,6 +5,7 @@ using Cv.Guard.Api.Contracts.Services;
 using Cv.Guard.Api.Core.Repositories;
 using Cv.Guard.Api.Services;
 using IpStack.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using PostmarkDotNet;
@@ -57,13 +58,25 @@ namespace Cv.Guard.Api.Extensions
 		{
 			services.TryAddScoped<IUploadRepository, UploadRepository>();
 			services.TryAddScoped<IEmailRepository, EmailRepository>();
-			services.TryAddScoped<ILocationRepository, LocationRepository>();
+
 			return services;
 		}
 
 		public static IServiceCollection ConfigureValidators(this IServiceCollection services)
 		{
 			services.TryAddScoped<IUploadRepository, UploadRepository>();
+			services.TryAddScoped<ILocationRepository, LocationRepository>();
+			return services;
+		}
+
+		public static IServiceCollection ConfigureDbContext(this IServiceCollection services, string connection)
+		{
+			services.AddDbContext<CvgaContext>(
+				(options) =>
+				{
+					options.UseSqlServer(connection);
+				}
+			);
 			return services;
 		}
 	}
