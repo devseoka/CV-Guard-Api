@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using AutoMapper;
 using Cv.Guard.Api.Configuration;
@@ -22,6 +23,7 @@ namespace Cv.Guard.Api.Controllers
 		IUploadRepository uploadRepository,
 		IUploadService uploadService,
 		IEmailService emailService,
+		ILocationService locationService,
 		IMapper mapper,
 		IOptions<PostmarkConfig> options
 	) : ApiBaseController
@@ -67,6 +69,24 @@ namespace Cv.Guard.Api.Controllers
 		public async Task<IActionResult> Download([FromBody] EmailRequest request)
 		{
 			emailValidator.ValidateAndThrow(request);
+			string domain = request.Email.Split('@').Last();
+
+			var ipAddresses = Dns.GetHostAddresses(domain);
+			if (ipAddresses.Length < 1)
+			{
+				string message = $"Domain name of this {request.Email} email is invalid or has been deregistered";
+				throw new BadRequestException(message, errors: [message]);
+			}
+
+			if (!Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))
+			{
+				forwardedFor = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+			}
+
+			var loc = await locationService.GetLocationByIpAddress(forwardedFor);
+			var location = mapper.Map<Location>(loc);
+
+
 
 			if (!Request.Headers.TryGetValue("X-API-Key", out var key))
 			{
@@ -84,7 +104,7 @@ namespace Cv.Guard.Api.Controllers
 			var content = stream.ToArray();
 			string name = Path.GetFileName(upload.Path);
 
-			var message = new TemplatedPostmarkMessage
+			var templateMessage = new TemplatedPostmarkMessage
 			{
 				To = request.Email,
 				From = postmarkConfig.Sender,
@@ -105,11 +125,11 @@ namespace Cv.Guard.Api.Controllers
 				},
 			};
 
-			message.Attachments = attachment;
-			var response = await emailService.SendAsync(message);
+			templateMessage.Attachments = attachment;
+			var response = await emailService.SendAsync(templateMessage);
 			var email = new Email
 			{
-				Data = JsonConvert.SerializeObject(message),
+				Data = JsonConvert.SerializeObject(templateMessage),
 				Message = response.Message,
 				Status = response.Status == PostmarkStatus.Success,
 			};
