@@ -66,7 +66,6 @@ namespace Cv.Guard.Api.Controllers
 		}
 
 		[HttpGet]
-		[ApiKey]
 		public async Task<IActionResult> Download([FromBody] EmailRequest request)
 		{
 			emailValidator.ValidateAndThrow(request);
