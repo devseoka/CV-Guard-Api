@@ -2,6 +2,8 @@ using System.Reflection;
 using Cv.Guard.Api.Extensions;
 using Cv.Guard.Api.Helpers.Middleware;
 using FluentValidation;
+using IpStack.Extensions;
+using IpStack.Models;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -10,6 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.ConfigureOptions(builder.Configuration);
 builder.Services.ConfigureExternalServices();
 
+string connection =  builder.Configuration.GetConnectionString("DefaultConnection");
+
+var ipStackOpts = builder.Configuration.GetSection("IpStack").Get<IpStackOptions>();
+builder.Services.AddIpStack(ipStackOpts.ApiKey);
+
+builder.Services.ConfigureDbContext(connection);
 builder.Services.ConfigureRepositories();
 builder.Services.ConfigureServices();
 

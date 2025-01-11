@@ -47,7 +47,7 @@ public class ExceptionMiddleware(ILogger<ExceptionMiddleware> logger) : IExcepti
 				error.Status = context.Response.StatusCode;
 				error.Extensions["Errors"] = new[]
 				{
-					"Something went wrong on our end. Please try again later. If the issue persists, contact our support team at support@hazie.co.za",
+					"Something went wrong on our end. Please try again later. If the issue persists, contact our support team at im@seokamoshele.digital",
 				};
 				await context.Response.WriteAsJsonAsync(error, cancellation);
 				break;

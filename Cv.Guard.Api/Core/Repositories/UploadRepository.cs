@@ -1,22 +1,28 @@
 using Cv.Guard.Api.Contracts.Repositories;
 using Cv.Guard.Api.Core.Models;
+using Microsoft.EntityFrameworkCore;
 
-public class UploadRepository : IUploadRepository
+namespace Cv.Guard.Api.Core.Repositories
 {
-	public IQueryable<Upload> Uploads => throw new NotImplementedException();
-
-	public Task<Upload> Add(Upload upload)
+	public class UploadRepository(CvgaContext context) : IUploadRepository
 	{
-		throw new NotImplementedException();
-	}
+		public IQueryable<Upload> Uploads => context.Uploads;
 
-	public Task<Upload> GetUploadByKey(string key)
-	{
-		throw new NotImplementedException();
-	}
+		public async Task<Upload> Add(Upload upload)
+		{
+			var entry = context.Uploads.Add(upload);
+			await context.SaveChangesAsync();
+			return entry.Entity;
+		}
 
-	public Task<IEnumerable<Upload>> GetUploads()
-	{
-		throw new NotImplementedException();
+		public async Task<Upload> GetUploadByKey(string key)
+		{
+			return await context.Uploads.FirstOrDefaultAsync(u => u.Key == key);
+		}
+
+		public async Task<IEnumerable<Upload>> GetUploads()
+		{
+			return await context.Uploads.ToListAsync();
+		}
 	}
 }
