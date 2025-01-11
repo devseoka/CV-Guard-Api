@@ -67,6 +67,7 @@ namespace Cv.Guard.Api.Controllers
 		public async Task<IActionResult> Download([FromBody] EmailRequest request)
 		{
 			emailValidator.ValidateAndThrow(request);
+
 			if (!Request.Headers.TryGetValue("X-API-Key", out var key))
 			{
 				throw new UnauthorizedException("API key is required.");
