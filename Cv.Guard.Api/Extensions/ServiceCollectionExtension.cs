@@ -1,4 +1,9 @@
+using Azure.Storage.Blobs;
 using Cv.Guard.Api.Configuration;
+using Cv.Guard.Api.Contracts.Repositories;
+using Cv.Guard.Api.Contracts.Services;
+using Cv.Guard.Api.Services;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using PostmarkDotNet;
 
@@ -16,7 +21,7 @@ namespace Cv.Guard.Api.Extensions
 			return services;
 		}
 
-		public static IServiceCollection ConfigurePostmark(this IServiceCollection services)
+		public static IServiceCollection ConfigureExternalServices(this IServiceCollection services)
 		{
 			services.AddSingleton(
 				(sp) =>
@@ -26,6 +31,33 @@ namespace Cv.Guard.Api.Extensions
 					return client;
 				}
 			);
+			services.AddSingleton(
+				(sp) =>
+				{
+					var azureBlobSettings = sp.GetRequiredService<IOptions<AzureBlobConfig>>().Value;
+					var client = new BlobServiceClient(azureBlobSettings.ConnectionString);
+					return client;
+				}
+			);
+			return services;
+		}
+
+		public static IServiceCollection ConfigureServices(this IServiceCollection services)
+		{
+			services.AddScoped<IEmailService, EmailService>();
+			services.AddScoped<IUploadService, UploadService>();
+			return services;
+		}
+
+		public static IServiceCollection ConfigureRepositories(this IServiceCollection services)
+		{
+			services.TryAddScoped<IUploadRepository, UploadRepository>();
+			return services;
+		}
+
+		public static IServiceCollection ConfigureValidators(this IServiceCollection services)
+		{
+			services.TryAddScoped<IUploadRepository, UploadRepository>();
 			return services;
 		}
 	}
