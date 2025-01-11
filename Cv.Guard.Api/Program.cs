@@ -1,7 +1,9 @@
 using System.Reflection;
 using Cv.Guard.Api.Extensions;
+using Cv.Guard.Api.Helpers.Middleware;
 using FluentValidation;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,8 @@ builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 builder.Services.AddControllers();
+builder.Services.AddExceptionHandler<ExceptionMiddleware>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -22,7 +26,11 @@ builder.Services.AddSwaggerGen(c =>
 	c.MapType<IFormFile>(() => new OpenApiSchema { Type = "string", Format = "binary" });
 });
 
+builder.Host.UseSerilog();
+
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -31,8 +39,9 @@ if (app.Environment.IsDevelopment())
 	app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection(); // Redirect HTTP to HTTPS
+app.UseHttpsRedirection();
+app.UseRouting();
 
-app.MapControllers(); // Map the controller routes
+app.MapControllers();
 
-app.Run(); // Start the application
+app.Run();

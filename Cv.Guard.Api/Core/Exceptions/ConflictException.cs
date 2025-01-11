@@ -2,11 +2,10 @@ using System.Net;
 
 namespace Cv.Guard.Api.Core.Exceptions
 {
-    public class ConflictException(string message, IEnumerable<string> errors)
-        : BaseException(message, errors)
-    {
-        protected override IEnumerable<string> Errors { get; set; } = errors;
+	public class ConflictException(string message, IEnumerable<string> errors) : BaseException(message, errors)
+	{
+		public override IEnumerable<string> Errors { get; set; } = errors;
 
-        protected override int StatusCode => (int)HttpStatusCode.Conflict;
-    }
+		public override int StatusCode => (int)HttpStatusCode.Conflict;
+	}
 }
