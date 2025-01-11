@@ -19,9 +19,9 @@ namespace Cv.Guard.Api.Helpers
 					}
 				);
 			CreateMap<IpAddressDetails, Core.Models.Location>()
-			.ForMember((dst) => dst.Region, opts => opts.MapFrom((src) => src.RegionName))
-			.ForMember((dst) => dst.Host, opts => opts.MapFrom((src) => src.Hostname))
-			.ForMember((dst) => dst.Country, opts => opts.MapFrom((src) => src.CountryName));
+				.ForMember((dst) => dst.Region, opts => opts.MapFrom((src) => src.RegionName))
+				.ForMember((dst) => dst.Host, opts => opts.MapFrom((src) => src.Hostname))
+				.ForMember((dst) => dst.Country, opts => opts.MapFrom((src) => src.CountryName));
 		}
 	}
 }
