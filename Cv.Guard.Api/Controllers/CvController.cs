@@ -21,6 +21,7 @@ namespace Cv.Guard.Api.Controllers
 		IValidator<EmailRequest> emailValidator,
 		IEmailRepository emailRepository,
 		IUploadRepository uploadRepository,
+		ILocationRepository locationRepository,
 		IUploadService uploadService,
 		IEmailService emailService,
 		ILocationService locationService,
@@ -86,6 +87,7 @@ namespace Cv.Guard.Api.Controllers
 			var loc = await locationService.GetLocationByIpAddress(forwardedFor);
 			var location = mapper.Map<Location>(loc);
 
+			await locationRepository.Add(location);
 
 
 			if (!Request.Headers.TryGetValue("X-API-Key", out var key))

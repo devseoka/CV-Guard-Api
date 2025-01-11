@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using Cv.Guard.Api.Configuration;
 using Cv.Guard.Api.Contracts.Repositories;
 using Cv.Guard.Api.Contracts.Services;
+using Cv.Guard.Api.Core.Repositories;
 using Cv.Guard.Api.Services;
 using IpStack.Models;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -54,6 +55,8 @@ namespace Cv.Guard.Api.Extensions
 		public static IServiceCollection ConfigureRepositories(this IServiceCollection services)
 		{
 			services.TryAddScoped<IUploadRepository, UploadRepository>();
+			services.TryAddScoped<IEmailRepository, EmailRepository>();
+			services.TryAddScoped<ILocationRepository, LocationRepository>();
 			return services;
 		}
 
