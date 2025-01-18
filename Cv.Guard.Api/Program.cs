@@ -28,12 +28,7 @@ builder.Services.AddControllers();
 builder.Services.AddExceptionHandler<ExceptionMiddleware>();
 builder.Services.AddProblemDetails();
 
-builder.Services.AddSwaggerGen(c =>
-{
-	c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cv Guard API", Version = "v1" });
-	c.MapType<IFormFile>(() => new OpenApiSchema { Type = "string", Format = "binary" });
-});
-
+builder.Services.ConfigureSwagger();
 builder.Host.UseSerilog();
 
 var app = builder.Build();
