@@ -74,6 +74,11 @@ namespace Cv.Guard.Api.Extensions
 			);
 			return services;
 		}
+		/// <summary>
+		/// Configures Swagger for the application by adding API key authentication.
+		/// </summary>
+		/// <param name="services">The IServiceCollection to add the Swagger configuration to.</param>
+		/// <returns>The IServiceCollection with the Swagger configuration added.</returns>
 		public static IServiceCollection ConfigureSwagger(this IServiceCollection services)
 		{
 			services.AddSwaggerGen(c =>
