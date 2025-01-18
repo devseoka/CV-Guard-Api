@@ -1,3 +1,4 @@
+using Azure.Core;
 using Azure.Storage.Blobs;
 using Cv.Guard.Api.Configuration;
 using Cv.Guard.Api.Contracts.Services;
@@ -13,7 +14,9 @@ namespace Cv.Guard.Api.Services
 
 		public async Task<MemoryStream> DownloadAsync(string uri)
 		{
-			var blobClient = new BlobClient(new Uri(uri));
+			var containerClient = azure.GetBlobContainerClient(blobOptions.Name);
+			string name = Path.GetFileName(uri);
+			var blobClient = containerClient.GetBlobClient(name);
 			if (!await blobClient.ExistsAsync())
 			{
 				throw new NotFoundException("Unable to find the requested file");
@@ -36,7 +39,7 @@ namespace Cv.Guard.Api.Services
 
 		private async Task<BlobContainerClient> GetContainerAsync(string name)
 		{
-			var blobContainerClient = azure.GetBlobContainerClient(name);
+			BlobContainerClient blobContainerClient = azure.GetBlobContainerClient(name);
 			await blobContainerClient.CreateIfNotExistsAsync();
 			return blobContainerClient;
 		}

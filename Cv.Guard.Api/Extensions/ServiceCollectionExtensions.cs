@@ -2,7 +2,10 @@ using Azure.Storage.Blobs;
 using Cv.Guard.Api.Configuration;
 using Cv.Guard.Api.Contracts.Repositories;
 using Cv.Guard.Api.Contracts.Services;
+using Cv.Guard.Api.Contracts.Validators;
 using Cv.Guard.Api.Core.Repositories;
+using Cv.Guard.Api.Core.Validators;
+using Cv.Guard.Api.Helpers.Filters;
 using Cv.Guard.Api.Services;
 using IpStack.Models;
 using Microsoft.EntityFrameworkCore;
@@ -36,14 +39,19 @@ namespace Cv.Guard.Api.Extensions
 					return client;
 				}
 			);
-			services.AddSingleton(
-				(sp) =>
-				{
-					var azureBlobSettings = sp.GetRequiredService<IOptions<AzureBlobConfig>>().Value;
-					var client = new BlobServiceClient(azureBlobSettings.ConnectionString);
-					return client;
-				}
-			);
+			services.AddSingleton((sp) =>
+			{
+				var azureBlobSettings = sp.GetRequiredService<IOptions<AzureBlobConfig>>().Value;
+				var client = new BlobServiceClient(azureBlobSettings.ConnectionString);
+				return client;
+			});
+			services.AddSingleton((sp) =>
+			{
+				var azureBlobSettings = sp.GetRequiredService<IOptions<AzureBlobConfig>>().Value;
+				var client = new BlobServiceClient(azureBlobSettings.ConnectionString);
+				var containerClient = client.GetBlobContainerClient(azureBlobSettings.Name);
+				return containerClient;
+			});
 			return services;
 		}
 
@@ -52,6 +60,8 @@ namespace Cv.Guard.Api.Extensions
 			services.AddScoped<IEmailService, EmailService>();
 			services.AddScoped<IUploadService, UploadService>();
 			services.TryAddScoped<ILocationService, LocationService>();
+			services.AddSingleton<ApiKeyAuthorizationFilter>();
+			services.AddSingleton<IApiKeyValidator, ApiKeyValidator>();
 			return services;
 		}
 

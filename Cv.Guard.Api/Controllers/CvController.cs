@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using AutoMapper;
+using Azure.Storage.Blobs;
 using Cv.Guard.Api.Configuration;
 using Cv.Guard.Api.Contracts.Repositories;
 using Cv.Guard.Api.Contracts.Services;
