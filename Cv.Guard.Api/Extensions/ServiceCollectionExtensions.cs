@@ -8,6 +8,7 @@ using IpStack.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using PostmarkDotNet;
 
 namespace Cv.Guard.Api.Extensions
@@ -71,6 +72,34 @@ namespace Cv.Guard.Api.Extensions
 					options.UseSqlServer(connection);
 				}
 			);
+			return services;
+		}
+		public static IServiceCollection ConfigureSwagger(this IServiceCollection services)
+		{
+			services.AddSwaggerGen(c =>
+			{
+				c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+				{
+					In = ParameterLocation.Header,
+					Name = "X-API-Key",
+					Type = SecuritySchemeType.ApiKey,
+					Description = "API Key Authentication"
+				});
+				c.AddSecurityRequirement(new OpenApiSecurityRequirement
+				{
+					{
+						new OpenApiSecurityScheme
+						{
+							Reference = new OpenApiReference
+							{
+								Type = ReferenceType.SecurityScheme,
+								Id = "ApiKey"
+							}
+						},
+						Array.Empty<string>()
+					}
+				});
+			});
 			return services;
 		}
 	}
