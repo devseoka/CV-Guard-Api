@@ -38,14 +38,14 @@ public class ExceptionMiddleware(ILogger<ExceptionMiddleware> logger) : IExcepti
 				error.Status = exception.StatusCode;
 				if (exception.Errors.Any())
 				{
-					error.Extensions["Errors"] = exception.Errors;
+					error.Extensions["errors"] = exception.Errors;
 				}
 				await context.Response.WriteAsJsonAsync(error, cancellation);
 				break;
 			default:
 				context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 				error.Status = context.Response.StatusCode;
-				error.Extensions["Errors"] = new[]
+				error.Extensions["errors"] = new[]
 				{
 					"Something went wrong on our end. Please try again later. If the issue persists, contact our support team at im@seokamoshele.digital",
 				};
