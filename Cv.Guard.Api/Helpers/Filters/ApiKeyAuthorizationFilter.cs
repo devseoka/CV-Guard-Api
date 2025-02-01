@@ -1,4 +1,5 @@
 using Cv.Guard.Api.Contracts.Validators;
+using Cv.Guard.Api.Core.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -11,14 +12,17 @@ namespace Cv.Guard.Api.Helpers.Filters
 		public void OnAuthorization(AuthorizationFilterContext context)
 		{
 			string apiKey = context.HttpContext.Request.Headers[HEADER];
+			
 			if (string.IsNullOrEmpty(apiKey))
 			{
-				throw new UnauthorizedAccessException("API key is required.");
+				string message = "API key is required.";
+				throw new UnauthorizedException(message, [message]);
 			}
 
 			if (!validator.IsValid(apiKey))
 			{
-				throw new UnauthorizedAccessException("Your API key is invalid.");
+				var message = "Your API key is invalid.";
+				throw new UnauthorizedException(message, [message]);
 			}
 		}
 	}

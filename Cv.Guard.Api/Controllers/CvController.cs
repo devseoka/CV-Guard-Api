@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using AutoMapper;
+using Azure.Storage.Blobs;
 using Cv.Guard.Api.Configuration;
 using Cv.Guard.Api.Contracts.Repositories;
 using Cv.Guard.Api.Contracts.Services;
@@ -29,7 +30,7 @@ namespace Cv.Guard.Api.Controllers
 		IOptions<PostmarkConfig> options
 	) : ApiBaseController
 	{
-		private readonly PostmarkConfig postmarkConfig = options.Value;
+		private readonly PostmarkConfig _postmarkConfig = options.Value;
 
 		[HttpPost]
 		[Consumes("multipart/form-data")]
@@ -66,6 +67,7 @@ namespace Cv.Guard.Api.Controllers
 		}
 
 		[HttpPost("download")]
+		[ApiKey]
 		public async Task<IActionResult> Download([FromBody] EmailRequest request)
 		{
 			emailValidator.ValidateAndThrow(request);
@@ -107,7 +109,7 @@ namespace Cv.Guard.Api.Controllers
 			var templateMessage = new TemplatedPostmarkMessage
 			{
 				To = request.Email,
-				From = postmarkConfig.Sender,
+				From = _postmarkConfig.Sender,
 				TemplateAlias = "cv",
 				TemplateModel = new Dictionary<string, object>
 				{

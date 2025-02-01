@@ -5,7 +5,7 @@ namespace Cv.Guard.Api.Core.Validators;
 
 public class ApiKeyValidator : IApiKeyValidator
 {
-	private const string PATTERN = @"^[A-Za-z]{2,3}-\d{10}-[A-Za-z0-9]{7}-[A-Za-z0-9]{7}$";
+	private const string PATTERN =@"^[A-Z]{2,3}-\d{10}-[A-Za-z0-9]+-[A-Za-z0-9]+$";
 
 	public bool IsValid(string apiKey)
 	{

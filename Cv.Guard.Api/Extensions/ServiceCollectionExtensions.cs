@@ -2,12 +2,16 @@ using Azure.Storage.Blobs;
 using Cv.Guard.Api.Configuration;
 using Cv.Guard.Api.Contracts.Repositories;
 using Cv.Guard.Api.Contracts.Services;
+using Cv.Guard.Api.Contracts.Validators;
 using Cv.Guard.Api.Core.Repositories;
+using Cv.Guard.Api.Core.Validators;
+using Cv.Guard.Api.Helpers.Filters;
 using Cv.Guard.Api.Services;
 using IpStack.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using PostmarkDotNet;
 
 namespace Cv.Guard.Api.Extensions
@@ -35,14 +39,19 @@ namespace Cv.Guard.Api.Extensions
 					return client;
 				}
 			);
-			services.AddSingleton(
-				(sp) =>
-				{
-					var azureBlobSettings = sp.GetRequiredService<IOptions<AzureBlobConfig>>().Value;
-					var client = new BlobServiceClient(azureBlobSettings.ConnectionString);
-					return client;
-				}
-			);
+			services.AddSingleton((sp) =>
+			{
+				var azureBlobSettings = sp.GetRequiredService<IOptions<AzureBlobConfig>>().Value;
+				var client = new BlobServiceClient(azureBlobSettings.ConnectionString);
+				return client;
+			});
+			services.AddSingleton((sp) =>
+			{
+				var azureBlobSettings = sp.GetRequiredService<IOptions<AzureBlobConfig>>().Value;
+				var client = new BlobServiceClient(azureBlobSettings.ConnectionString);
+				var containerClient = client.GetBlobContainerClient(azureBlobSettings.Name);
+				return containerClient;
+			});
 			return services;
 		}
 
@@ -51,6 +60,8 @@ namespace Cv.Guard.Api.Extensions
 			services.AddScoped<IEmailService, EmailService>();
 			services.AddScoped<IUploadService, UploadService>();
 			services.TryAddScoped<ILocationService, LocationService>();
+			services.AddSingleton<ApiKeyAuthorizationFilter>();
+			services.AddSingleton<IApiKeyValidator, ApiKeyValidator>();
 			return services;
 		}
 
@@ -71,6 +82,52 @@ namespace Cv.Guard.Api.Extensions
 					options.UseSqlServer(connection);
 				}
 			);
+			return services;
+		}
+		/// <summary>
+		/// Configures Swagger for the application by adding API key authentication.
+		/// </summary>
+		/// <param name="services">The IServiceCollection to add the Swagger configuration to.</param>
+		/// <returns>The IServiceCollection with the Swagger configuration added.</returns>
+		public static IServiceCollection ConfigureSwagger(this IServiceCollection services)
+		{
+			services.AddSwaggerGen(c =>
+			{
+				c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+				{
+					In = ParameterLocation.Header,
+					Name = "X-API-Key",
+					Type = SecuritySchemeType.ApiKey,
+					Description = "API Key Authentication"
+				});
+				c.AddSecurityRequirement(new OpenApiSecurityRequirement
+				{
+					{
+						new OpenApiSecurityScheme
+						{
+							Reference = new OpenApiReference
+							{
+								Type = ReferenceType.SecurityScheme,
+								Id = "ApiKey"
+							}
+						},
+						Array.Empty<string>()
+					}
+				});
+			});
+			return services;
+		}
+		public static IServiceCollection EnableCORS(this IServiceCollection services, string name)
+		{
+			services.AddCors((options) =>
+			{
+				options.AddPolicy(name, policy =>
+				{
+					policy.AllowAnyHeader()
+					.AllowAnyMethod()
+					.AllowAnyOrigin();
+				});
+			});
 			return services;
 		}
 	}

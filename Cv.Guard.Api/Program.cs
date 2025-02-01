@@ -4,10 +4,10 @@ using Cv.Guard.Api.Helpers.Middleware;
 using FluentValidation;
 using IpStack.Extensions;
 using IpStack.Models;
-using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+const string CORS_ORIGINS = "CV.Guard.Api-CORS-Origins";
 
 builder.Services.ConfigureOptions(builder.Configuration);
 builder.Services.ConfigureExternalServices();
@@ -27,17 +27,14 @@ builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 builder.Services.AddControllers();
 builder.Services.AddExceptionHandler<ExceptionMiddleware>();
 builder.Services.AddProblemDetails();
+builder.Services.EnableCORS(CORS_ORIGINS);
 
-builder.Services.AddSwaggerGen(c =>
-{
-	c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cv Guard API", Version = "v1" });
-	c.MapType<IFormFile>(() => new OpenApiSchema { Type = "string", Format = "binary" });
-});
-
+builder.Services.ConfigureSwagger();
 builder.Host.UseSerilog();
 
 var app = builder.Build();
 
+app.UseCors(CORS_ORIGINS);
 app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.

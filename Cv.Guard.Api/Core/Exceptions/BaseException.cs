@@ -2,7 +2,7 @@ namespace Cv.Guard.Api.Core.Exceptions
 {
 	public abstract class BaseException : Exception
 	{
-		public abstract IEnumerable<string> Errors { get; set; }
+		public IEnumerable<string> Errors { get; set; }
 		public abstract int StatusCode { get; }
 
 		public BaseException(string message)

@@ -11,9 +11,7 @@ namespace Cv.Guard.Api.Core.Exceptions
 			: base(message, innerException) { }
 
 		public BadRequestException(string message, IEnumerable<string> errors)
-			: base(message, errors) => Errors = errors;
-
-		public override IEnumerable<string> Errors { get; set; }
+			: base(message, errors) { }
 		public override int StatusCode => (int)HttpStatusCode.BadRequest;
 	}
 }
