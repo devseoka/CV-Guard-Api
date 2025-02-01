@@ -117,5 +117,18 @@ namespace Cv.Guard.Api.Extensions
 			});
 			return services;
 		}
+		public static IServiceCollection EnableCORS(this IServiceCollection services, string name)
+		{
+			services.AddCors((options) =>
+			{
+				options.AddPolicy(name, policy =>
+				{
+					policy.AllowAnyHeader()
+					.AllowAnyMethod()
+					.AllowAnyOrigin();
+				});
+			});
+			return services;
+		}
 	}
 }

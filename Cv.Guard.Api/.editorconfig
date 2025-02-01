@@ -1,5 +1,3 @@
-# .editorconfig
-
 # Root is true to indicate that this is the root .editorconfig file
 root = true
 
@@ -45,7 +43,9 @@ csharp_new_line_before_members = true
 
 # Define the naming convention for C# files
 dotnet_naming_rules.interface_prefix = I  # Prefix interfaces with "I"
-dotnet_naming_rules.enum_case_style = UPPER_SNAKE_CASE  # Use uppercase snake_case for enum values
+dotnet_naming_rules.enum_case.style = E_Prefix  # Enums must start with "E"
+dotnet_naming_rules.enum_case.symbols = enum_symbols
+dotnet_naming_rules.enum_case.severity = error
 
 # Enforce the use of var where type is apparent
 dotnet_style_var_for_built_in_types = true
@@ -76,7 +76,41 @@ csharp_space_around_operators = true
 # Enforce consistent formatting of braces and indentation
 csharp_brace_style = next_line
 
-# Settings for other common file types (if needed)
-[*.{md,txt}]
-# Set the max line length to 120 for markdown and text files as well
-max_line_length = 120
+# Enable formatting for lambda expressions in method calls
+csharp_style_lambda_expression = inline
+
+# Ensure lambdas have a space after the `=>`
+csharp_space_after_lambda_arrow = true
+
+# Ensure lambda expressions use the `inline` style (without extra line breaks)
+csharp_style_lambda_expression = inline
+
+# Naming rule for constants to be in ALL_CAPS
+dotnet_naming_rule.constant_case.style = CONSTANT_ALL_CAPS
+dotnet_naming_rule.constant_case.symbols = constant_symbols
+dotnet_naming_rule.constant_case.severity = error
+
+# Define the symbols that the rule applies to
+dotnet_naming_symbols.constant_symbols.applicable_kinds = field
+dotnet_naming_symbols.constant_symbols.applicable_accessibilities = *
+dotnet_naming_symbols.constant_symbols.required_modifiers = readonly
+
+# Define the ALL_CAPS naming style for constants
+dotnet_naming_style.CONSTANT_ALL_CAPS.capitalization = all_upper
+dotnet_naming_style.CONSTANT_ALL_CAPS.required_prefix = 
+dotnet_naming_style.CONSTANT_ALL_CAPS.required_suffix = 
+
+# Define the naming rule for readonly fields to follow camelCase
+dotnet_naming_rule.readonly_field_case.style = camelCase
+dotnet_naming_rule.readonly_field_case.symbols = readonly_field_symbols
+dotnet_naming_rule.readonly_field_case.severity = error
+
+# Define the symbols that the rule applies to for readonly fields
+dotnet_naming_symbols.readonly_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.readonly_field_symbols.applicable_accessibilities = private
+dotnet_naming_symbols.readonly_field_symbols.required_modifiers = readonly
+
+# Define the camelCase naming style for readonly fields
+dotnet_naming_style.camelCase.capitalization = camel_case
+dotnet_naming_style.camelCase.required_prefix = _
+dotnet_naming_style.camelCase.required_suffix = 

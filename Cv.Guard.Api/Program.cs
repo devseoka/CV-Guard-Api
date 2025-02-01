@@ -4,10 +4,10 @@ using Cv.Guard.Api.Helpers.Middleware;
 using FluentValidation;
 using IpStack.Extensions;
 using IpStack.Models;
-using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+const string CORS_ORIGINS = "CV.Guard.Api-CORS-Origins";
 
 builder.Services.ConfigureOptions(builder.Configuration);
 builder.Services.ConfigureExternalServices();
@@ -33,6 +33,7 @@ builder.Host.UseSerilog();
 
 var app = builder.Build();
 
+app.UseCors(CORS_ORIGINS);
 app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
