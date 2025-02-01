@@ -16,6 +16,7 @@ string connection =  builder.Configuration.GetConnectionString("DefaultConnectio
 
 var ipStackOpts = builder.Configuration.GetSection("IpStack").Get<IpStackOptions>();
 builder.Services.AddIpStack(ipStackOpts.ApiKey);
+builder.Services.EnableCORS(CORS_ORIGINS);
 
 builder.Services.ConfigureDbContext(connection);
 builder.Services.ConfigureRepositories();
@@ -27,7 +28,6 @@ builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 builder.Services.AddControllers();
 builder.Services.AddExceptionHandler<ExceptionMiddleware>();
 builder.Services.AddProblemDetails();
-builder.Services.EnableCORS(CORS_ORIGINS);
 
 builder.Services.ConfigureSwagger();
 builder.Host.UseSerilog();
