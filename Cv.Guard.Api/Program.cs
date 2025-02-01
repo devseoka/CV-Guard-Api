@@ -27,6 +27,7 @@ builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 builder.Services.AddControllers();
 builder.Services.AddExceptionHandler<ExceptionMiddleware>();
 builder.Services.AddProblemDetails();
+builder.Services.EnableCORS(CORS_ORIGINS);
 
 builder.Services.ConfigureSwagger();
 builder.Host.UseSerilog();
