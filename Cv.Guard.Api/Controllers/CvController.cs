@@ -30,7 +30,7 @@ namespace Cv.Guard.Api.Controllers
 		IOptions<PostmarkConfig> options
 	) : ApiBaseController
 	{
-		private readonly PostmarkConfig postmarkConfig = options.Value;
+		private readonly PostmarkConfig _postmarkConfig = options.Value;
 
 		[HttpPost]
 		[Consumes("multipart/form-data")]
@@ -109,7 +109,7 @@ namespace Cv.Guard.Api.Controllers
 			var templateMessage = new TemplatedPostmarkMessage
 			{
 				To = request.Email,
-				From = postmarkConfig.Sender,
+				From = _postmarkConfig.Sender,
 				TemplateAlias = "cv",
 				TemplateModel = new Dictionary<string, object>
 				{
