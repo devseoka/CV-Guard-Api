@@ -39,7 +39,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Publish the app
-        run: dotnet publish -c Release -o "${{ env.DOTNET_ROOT }}/myapp"
+        run: dotnet publish -c Release -o "${{ env.DOTNET_ROOT }}/Cv.Guard.Api"
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
