@@ -1,4 +1,4 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - api-sds-cv-guard 
+name: Build and deploy ASP.Net Core app to Azure Web App - api-sds-cv-guard
 
 on:
   pull_request:
@@ -24,15 +24,24 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
+      - name: Check if appsettings.json exists
+        run: |
+          if (Test-Path './Cv.Guard.Api/appsettings.json') {
+            Write-Host "appsettings.json exists"
+          } else {
+            Write-Host "appsettings.json does not exist"
+            exit 1
+          }
+
       - name: Replace environment variables in appsettings.json
         run: |
-          $config = Get-Content appsettings.json | ConvertFrom-Json
+          $config = Get-Content ./Cv.Guard.Api/appsettings.json | ConvertFrom-Json
           $config.ConnectionStrings.DefaultConnection = "${{ secrets.AZURE_SQL_SERVER_CONNECTION_STRING }}"
           $config.AzureBlob.ConnectionString = "${{ secrets.AZURE_FILE_STORAGE_CONNECTION_STRING }}"
           $config.AzureBlob.Name = "${{ secrets.AZURE_FILE_STORAGE_CONTAINER_NAME }}"
           $config.Postmark.Key = "${{ secrets.POSTMARK_API_KEY }}"
           $config.IpStack.ApiKey = "${{ secrets.IPSTACK_API_KEY }}"
-          $config | ConvertTo-Json -Depth 10 | Set-Content appsettings.json
+          $config | ConvertTo-Json -Depth 10 | Set-Content ./Cv.Guard.Api/appsettings.json
         shell: pwsh
 
       - name: Build with dotnet
@@ -45,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{ env.DOTNET_ROOT }}/myapp
+          path: ${{ env.DOTNET_ROOT }}/Cv.Guard.Api
 
   deploy:
     runs-on: windows-latest
