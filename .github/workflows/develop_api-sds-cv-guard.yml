@@ -1,19 +1,21 @@
-name: .NET Core - Build and Deploy
+name: Build and deploy ASP.Net Core app to Azure Web App - api-sds-cv-guard
 
 on:
   pull_request:
     branches: [develop]
+  push:
+    branches:
+      - develop
   workflow_dispatch:
 
 env:
   AZURE_WEBAPP_NAME: api-sds-cv-guard
   DOTNET_VERSION: '8.x'
-  PROJECT_PATH: './Cv.Guard.Api/Cv.Guard.Api.csproj'
-  TEST_PROJECT_PATH: './Cv.Guard.Tests/Cv.Guard.Tests.csproj'
+  SOLUTION_PATH: './Cv.Guard.sln'
   PUBLISH_PATH: './publish'
 
 jobs:
-  build:
+  publish:
     runs-on: windows-latest
     permissions:
       contents: read
@@ -22,17 +24,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: |
-          dotnet restore ${{ env.PROJECT_PATH }}
-          dotnet restore ${{ env.TEST_PROJECT_PATH }}
-        
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
       - name: Validate appsettings.json
+        if: github.ref == 'refs/heads/develop'
         run: |
           if (!(Test-Path './Cv.Guard.Api/appsettings.json')) {
             Write-Host "Error: appsettings.json not found!"
@@ -51,17 +60,11 @@ jobs:
           $config | ConvertTo-Json -Depth 10 | Set-Content ./Cv.Guard.Api/appsettings.json
         shell: pwsh
 
-      - name: Build API
-        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
-
-      - name: Build Tests
-        run: dotnet build ${{ env.TEST_PROJECT_PATH }} --configuration Release --no-restore
-
-      - name: Run Tests
-        run: dotnet test ${{ env.TEST_PROJECT_PATH }} --configuration Release --no-build
+      - name: Build Solution
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
 
       - name: Publish API
-        run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ${{ env.PUBLISH_PATH }} --no-build
+        run: dotnet publish ${{ env.SOLUTION_PATH }} -c Release -o ${{ env.PUBLISH_PATH }} --no-build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -70,23 +73,64 @@ jobs:
           path: ${{ env.PUBLISH_PATH }}
           retention-days: 1
 
+  test:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build Solution
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+
+      - name: Run Tests
+        run: dotnet test ${{ env.SOLUTION_PATH }} --configuration Release --no-build --no-restore
+
   deploy:
     runs-on: windows-latest
-    needs: build
+    needs: [publish, test] # Depends on both publish and test jobs
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
-      - name: Download artifact
+      - name: Download artifact from publish job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_5B47637BA8E54B26BF799CEA0AC55C1C }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0E8BCF3E61AD4B1F90939D6569AA875C }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_036CF2F868964BD5841AB450D745FA79 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          slot-name: 'Production'
           package: .
