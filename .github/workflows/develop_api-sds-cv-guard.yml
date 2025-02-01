@@ -1,0 +1,79 @@
+name: Build and deploy ASP.Net Core app to Azure Web App - api-sds-cv-guard 
+
+on:
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: read # Required for actions/checkout
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Replace environment variables in appsettings.json
+        run: |
+          $config = Get-Content appsettings.json | ConvertFrom-Json
+          $config.ConnectionStrings.DefaultConnection = "${{ secrets.AZURE_SQL_SERVER_CONNECTION_STRING }}"
+          $config.AzureBlob.ConnectionString = "${{ secrets.AZURE_FILE_STORAGE_CONNECTION_STRING }}"
+          $config.AzureBlob.Name = "${{ secrets.AZURE_FILE_STORAGE_CONTAINER_NAME }}"
+          $config.Postmark.Key = "${{ secrets.POSTMARK_API_KEY }}"
+          $config.IpStack.ApiKey = "${{ secrets.IPSTACK_API_KEY }}"
+          $config | ConvertTo-Json -Depth 10 | Set-Content appsettings.json
+        shell: pwsh
+
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
+
+      - name: Publish the app
+        run: dotnet publish -c Release -o "${{ env.DOTNET_ROOT }}/myapp"
+
+      - name: Upload artifact for deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: .net-app
+          path: ${{ env.DOTNET_ROOT }}/myapp
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write # Required for requesting the JWT
+      contents: read # Required for actions/checkout
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'api-sds-cv-guard'
+          slot-name: 'Production'
+          package: .
