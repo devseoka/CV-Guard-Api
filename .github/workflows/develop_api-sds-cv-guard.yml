@@ -11,7 +11,7 @@ on:
 env:
   AZURE_WEBAPP_NAME: api-sds-cv-guard
   DOTNET_VERSION: '8.x'
-  SOLUTION_PATH: './Cv.Guard.sln'
+  SOLUTION_PATH: './CV-Guard-Api.sln'  # Updated to the correct solution file name
   PUBLISH_PATH: './publish'
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore ${{ env.SOLUTION_PATH }}
+        run: dotnet restore ${{ env.SOLUTION_PATH }}  # Uses the correct solution file
 
       - name: Validate appsettings.json
         if: github.ref == 'refs/heads/develop'
@@ -96,7 +96,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore ${{ env.SOLUTION_PATH }}
+        run: dotnet restore ${{ env.SOLUTION_PATH }}  # Uses the correct solution file
 
       - name: Build Solution
         run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
@@ -106,7 +106,7 @@ jobs:
 
   deploy:
     runs-on: windows-latest
-    needs: [publish, test] # Depends on both publish and test jobs
+    needs: [publish, test]  # Depends on both publish and test jobs
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
