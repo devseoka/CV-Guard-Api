@@ -9,6 +9,7 @@ env:
   AZURE_WEBAPP_NAME: api-sds-cv-guard
   DOTNET_VERSION: '8.x'
   PROJECT_PATH: './Cv.Guard.Api/Cv.Guard.Api.csproj'
+  TEST_PROJECT_PATH: './Cv.Guard.Tests/Cv.Guard.Tests.csproj'
   PUBLISH_PATH: './publish'
 
 jobs:
@@ -27,7 +28,9 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: |
+          dotnet restore ${{ env.PROJECT_PATH }}
+          dotnet restore ${{ env.TEST_PROJECT_PATH }}
         
       - name: Validate appsettings.json
         run: |
@@ -48,13 +51,16 @@ jobs:
           $config | ConvertTo-Json -Depth 10 | Set-Content ./Cv.Guard.Api/appsettings.json
         shell: pwsh
 
-      - name: Build
+      - name: Build API
         run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
 
-      - name: Run Tests
-        run: dotnet test --no-build --verbosity normal
+      - name: Build Tests
+        run: dotnet build ${{ env.TEST_PROJECT_PATH }} --configuration Release --no-restore
 
-      - name: Publish
+      - name: Run Tests
+        run: dotnet test ${{ env.TEST_PROJECT_PATH }} --configuration Release --no-build
+
+      - name: Publish API
         run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ${{ env.PUBLISH_PATH }} --no-build
 
       - name: Upload artifact
