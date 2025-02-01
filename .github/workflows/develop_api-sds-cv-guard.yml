@@ -1,56 +1,125 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy ASP.Net Core app to Azure Web App - api-sds-cv-guard
 
 on:
+  pull_request:
+    branches: [develop]
   push:
     branches:
       - develop
   workflow_dispatch:
 
+env:
+  AZURE_WEBAPP_NAME: api-sds-cv-guard
+  DOTNET_VERSION: '8.x'
+  SOLUTION_PATH: './CV-Guard-Api.sln'  # Updated to the correct solution file name
+  PUBLISH_PATH: './publish'
+
 jobs:
-  build:
+  publish:
     runs-on: windows-latest
     permissions:
-      contents: read #This is required for actions/checkout
-
+      contents: read
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up .NET Core
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.SOLUTION_PATH }}  # Uses the correct solution file
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+      - name: Validate appsettings.json
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          if (!(Test-Path './Cv.Guard.Api/appsettings.json')) {
+            Write-Host "Error: appsettings.json not found!"
+            exit 1
+          }
+        shell: pwsh
 
-      - name: Upload artifact for deployment job
+      - name: Configure appsettings.json
+        run: |
+          $config = Get-Content ./Cv.Guard.Api/appsettings.json | ConvertFrom-Json
+          $config.ConnectionStrings.DefaultConnection = "${{ secrets.AZURE_SQL_SERVER_CONNECTION_STRING }}"
+          $config.AzureBlob.ConnectionString = "${{ secrets.AZURE_FILE_STORAGE_CONNECTION_STRING }}"
+          $config.AzureBlob.Name = "${{ secrets.AZURE_FILE_STORAGE_CONTAINER_NAME }}"
+          $config.Postmark.Key = "${{ secrets.POSTMARK_API_KEY }}"
+          $config.IpStack.ApiKey = "${{ secrets.IPSTACK_API_KEY }}"
+          $config | ConvertTo-Json -Depth 10 | Set-Content ./Cv.Guard.Api/appsettings.json
+        shell: pwsh
+
+      - name: Build Solution
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+
+      - name: Publish API
+        run: dotnet publish ${{ env.SOLUTION_PATH }} -c Release -o ${{ env.PUBLISH_PATH }} --no-build
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ${{ env.PUBLISH_PATH }}
+          retention-days: 1
+
+  test:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.SOLUTION_PATH }}  # Uses the correct solution file
+
+      - name: Build Solution
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+
+      - name: Run Tests
+        run: dotnet test ${{ env.SOLUTION_PATH }} --configuration Release --no-build --no-restore
 
   deploy:
     runs-on: windows-latest
-    needs: build
+    needs: [publish, test]  # Depends on both publish and test jobs
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact from publish job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -62,7 +131,6 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'api-sds-cv-guard'
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: 'Production'
           package: .
-          
