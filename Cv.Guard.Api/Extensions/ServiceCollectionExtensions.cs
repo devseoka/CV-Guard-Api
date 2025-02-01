@@ -123,9 +123,10 @@ namespace Cv.Guard.Api.Extensions
 			{
 				options.AddPolicy(name, policy =>
 				{
-					policy.AllowAnyHeader()
-					.AllowAnyMethod()
-					.AllowAnyOrigin();
+					policy
+					.AllowAnyOrigin()
+					.AllowAnyHeader()
+					.AllowAnyMethod();
 				});
 			});
 			return services;

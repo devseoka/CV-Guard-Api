@@ -79,13 +79,8 @@ namespace Cv.Guard.Api.Controllers
 				string message = $"Domain name of this {request.Email} email is invalid or has been deregistered";
 				throw new BadRequestException(message, errors: [message]);
 			}
-
-			if (!Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))
-			{
-				forwardedFor = Request.HttpContext.Connection.RemoteIpAddress.ToString();
-			}
-
-			var loc = await locationService.GetLocationByIpAddress(forwardedFor);
+			var ipAddress = GetClientIpAddress(Request);
+			var loc = await locationService.GetLocationByIpAddress(ipAddress);
 			var location = mapper.Map<Location>(loc);
 
 			await locationRepository.Add(location);
@@ -151,6 +146,29 @@ namespace Cv.Guard.Api.Controllers
 			}
 
 			return stringBuilder.ToString();
+		}
+		private static string GetClientIpAddress(HttpRequest request)
+		{
+			if (request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))
+			{
+				var clientIp = forwardedFor.ToString().Split(',')[0].Trim();
+
+				if (!IPAddress.TryParse(clientIp, out _))
+				{
+					throw new BadRequestException("Unable to determine the client's IP address. The 'X-Forwarded-For' header contains an invalid IP address.");
+				}
+
+				return clientIp;
+			}
+
+			var remoteIp = request.HttpContext.Connection.RemoteIpAddress?.ToString();
+
+			if (string.IsNullOrEmpty(remoteIp))
+			{
+				throw new BadRequestException("Unable to determine the client's IP address. No valid IP address was found in the request.");
+			}
+
+			return remoteIp;
 		}
 	}
 }

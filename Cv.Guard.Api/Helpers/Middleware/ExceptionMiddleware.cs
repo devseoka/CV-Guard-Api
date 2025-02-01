@@ -36,7 +36,7 @@ public class ExceptionMiddleware(ILogger<ExceptionMiddleware> logger) : IExcepti
 			case BaseException exception:
 				context.Response.StatusCode = exception.StatusCode;
 				error.Status = exception.StatusCode;
-				if (exception.Errors.Any())
+				if (exception.Errors is not null)
 				{
 					error.Extensions["errors"] = exception.Errors;
 				}

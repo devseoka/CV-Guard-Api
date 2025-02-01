@@ -1,20 +1,18 @@
-using Azure.Core;
 using Azure.Storage.Blobs;
 using Cv.Guard.Api.Configuration;
 using Cv.Guard.Api.Contracts.Services;
 using Cv.Guard.Api.Core.Exceptions;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 
 namespace Cv.Guard.Api.Services
 {
 	public class UploadService(BlobServiceClient azure, IOptions<AzureBlobConfig> options) : IUploadService
 	{
-		private readonly AzureBlobConfig blobOptions = options.Value;
+		private readonly AzureBlobConfig _blobOptions = options.Value;
 
 		public async Task<MemoryStream> DownloadAsync(string uri)
 		{
-			var containerClient = azure.GetBlobContainerClient(blobOptions.Name);
+			var containerClient = azure.GetBlobContainerClient(_blobOptions.Name);
 			string name = Path.GetFileName(uri);
 			var blobClient = containerClient.GetBlobClient(name);
 			if (!await blobClient.ExistsAsync())
@@ -29,7 +27,7 @@ namespace Cv.Guard.Api.Services
 
 		public async Task<string> UploadAsync(Stream stream, string name)
 		{
-			var containerClient = await GetContainerAsync(blobOptions.Name);
+			var containerClient = await GetContainerAsync(_blobOptions.Name);
 			var blobClient = containerClient.GetBlobClient(name);
 
 			var response = await blobClient.UploadAsync(stream, overwrite: true);
