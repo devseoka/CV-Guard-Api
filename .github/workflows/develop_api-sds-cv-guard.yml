@@ -1,4 +1,4 @@
-name: .NET Core - Build and Deploy Cv Guard Api
+name: .NET Core - Build and Deploy
 
 on:
   pull_request:
@@ -7,8 +7,9 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: api-sds-cv-guard
-  AZURE_WEBAPP_PACKAGE_PATH: '.'
   DOTNET_VERSION: '8.x'
+  PROJECT_PATH: './Cv.Guard.Api/Cv.Guard.Api.csproj'
+  PUBLISH_PATH: './publish'
 
 jobs:
   build:
@@ -48,16 +49,19 @@ jobs:
         shell: pwsh
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+
+      - name: Run Tests
+        run: dotnet test --no-build --verbosity normal
 
       - name: Publish
-        run: dotnet publish -c Release -o "${{ env.DOTNET_ROOT }}/Cv.Guard.Api" --no-build
+        run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ${{ env.PUBLISH_PATH }} --no-build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{ env.DOTNET_ROOT }}/Cv.Guard.Api
+          path: ${{ env.PUBLISH_PATH }}
           retention-days: 1
 
   deploy:
@@ -66,27 +70,17 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          slot-name: 'Production'
-          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: .
