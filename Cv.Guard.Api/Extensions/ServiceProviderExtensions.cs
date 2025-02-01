@@ -8,10 +8,7 @@ namespace Cv.Guard.Api.Extensions
             
             using var scope = services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<CvgaContext>();
-            
-            context.Database.EnsureCreated();
             context.Database.Migrate();
-            
             return services;
         }
 	}
