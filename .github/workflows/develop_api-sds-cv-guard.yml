@@ -1,39 +1,42 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - api-sds-cv-guard
+name: .NET Core - Build and Deploy Cv Guard Api
 
 on:
   pull_request:
-    branches:
-      - develop
+    branches: [develop]
   workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: api-sds-cv-guard
+  AZURE_WEBAPP_PACKAGE_PATH: '.'
+  DOTNET_VERSION: '8.x'
 
 jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read # Required for actions/checkout
-
+      contents: read
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up .NET Core
+      - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
         run: dotnet restore
-
-      - name: Check if appsettings.json exists
+        
+      - name: Validate appsettings.json
         run: |
-          if (Test-Path './Cv.Guard.Api/appsettings.json') {
-            Write-Host "appsettings.json exists"
-          } else {
-            Write-Host "appsettings.json does not exist"
+          if (!(Test-Path './Cv.Guard.Api/appsettings.json')) {
+            Write-Host "Error: appsettings.json not found!"
             exit 1
           }
+        shell: pwsh
 
-      - name: Replace environment variables in appsettings.json
+      - name: Configure appsettings.json
         run: |
           $config = Get-Content ./Cv.Guard.Api/appsettings.json | ConvertFrom-Json
           $config.ConnectionStrings.DefaultConnection = "${{ secrets.AZURE_SQL_SERVER_CONNECTION_STRING }}"
@@ -44,17 +47,18 @@ jobs:
           $config | ConvertTo-Json -Depth 10 | Set-Content ./Cv.Guard.Api/appsettings.json
         shell: pwsh
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
 
-      - name: Publish the app
-        run: dotnet publish -c Release -o "${{ env.DOTNET_ROOT }}/Cv.Guard.Api"
+      - name: Publish
+        run: dotnet publish -c Release -o "${{ env.DOTNET_ROOT }}/Cv.Guard.Api" --no-build
 
-      - name: Upload artifact for deployment
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
           path: ${{ env.DOTNET_ROOT }}/Cv.Guard.Api
+          retention-days: 1
 
   deploy:
     runs-on: windows-latest
@@ -63,11 +67,11 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write # Required for requesting the JWT
-      contents: read # Required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: .net-app
@@ -83,6 +87,6 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'api-sds-cv-guard'
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: 'Production'
-          package: .
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
