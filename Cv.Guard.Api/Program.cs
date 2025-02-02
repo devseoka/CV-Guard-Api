@@ -20,8 +20,6 @@ try
 	var ipStackOpts = builder.Configuration.GetSection("IpStack").Get<IpStackOptions>();
 	builder.Services.AddIpStack(ipStackOpts.ApiKey);
 	builder.Services.EnableCORS(CORS_ORIGINS);
-
-	builder.Host.ConfigureSerilog(connection);
 	builder.Services.ConfigureDbContext(connection);
 	builder.Services.ConfigureRepositories();
 	builder.Services.ConfigureServices();
@@ -34,7 +32,7 @@ try
 	builder.Services.AddProblemDetails();
 
 	builder.Services.ConfigureSwagger();
-	builder.Host.UseSerilog();
+	builder.ConfigureSerilog(connection);
 
 	var app = builder.Build();
 
