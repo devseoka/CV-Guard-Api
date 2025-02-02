@@ -1,5 +1,8 @@
-public class UploadRequest
+namespace Cv.Guard.Api.Core.Dto
 {
-	public string Initials { get; set; }
-	public IFormFile File { get; set; }
+	public class UploadRequest
+	{
+		public string Initials { get; set; }
+		public IFormFile File { get; set; }
+	}
 }
