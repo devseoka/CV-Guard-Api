@@ -2,10 +2,11 @@ using System.Net;
 using Cv.Guard.Api.Core.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace Cv.Guard.Api.Helpers.Middleware;
 
-public class ExceptionMiddleware(ILogger<ExceptionMiddleware> logger) : IExceptionHandler
+public class ExceptionMiddleware() : IExceptionHandler
 {
 	public async ValueTask<bool> TryHandleAsync(
 		HttpContext httpContext,
@@ -16,9 +17,9 @@ public class ExceptionMiddleware(ILogger<ExceptionMiddleware> logger) : IExcepti
 		if (exception is not NotFoundException)
 		{
 			string message = $"{exception.Message} - {exception.InnerException?.Message}";
-			logger.LogError(
+			Log.Error(
 				exception,
-				"An unexpected error occurred while executing {Path}. Error: {ErrorMessage}",
+				"An unexpected error occurred while executing @{Path}. Error: @{Message}",
 				httpContext.Request.Path,
 				message
 			);

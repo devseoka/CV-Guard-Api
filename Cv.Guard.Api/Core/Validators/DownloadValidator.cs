@@ -5,7 +5,7 @@ namespace Cv.Guard.Api.Core.Validators
 {
 	public class DownloadValidator : AbstractValidator<EmailRequest>
 	{
-		private readonly List<string> freeEmailDomains =
+		private readonly List<string> _freeEmailDomains =
 		[
 			"@gmail.com",
 			"@yahoo.com",
@@ -51,7 +51,7 @@ namespace Cv.Guard.Api.Core.Validators
 		private bool IsFreeEmailProvider(string email)
 		{
 			var domain = email?.Split('@').LastOrDefault()?.ToLowerInvariant();
-			return freeEmailDomains.Any(freeDomain => domain?.EndsWith(freeDomain) == true);
+			return _freeEmailDomains.Any(freeDomain => domain?.EndsWith(freeDomain) == true);
 		}
 	}
 }
