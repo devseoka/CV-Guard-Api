@@ -1,12 +1,12 @@
-using System.Reflection;
-using System.Text;
 using Cv.Guard.Api.Extensions;
 using Cv.Guard.Api.Helpers.Middleware;
 using FluentValidation;
 using IpStack.Extensions;
 using IpStack.Models;
 using Serilog;
-
+using Serilog.AspNetCore;
+using System.Reflection;
+using System.Text;
 
 try
 {
@@ -39,6 +39,8 @@ try
 
 	var app = builder.Build();
 
+	app.UseSerilogRequestLogging();
+
 	app.UseCors(CORS_ORIGINS);
 	app.UseExceptionHandler();
 
@@ -48,7 +50,6 @@ try
 		app.UseSwagger();
 		app.UseSwaggerUI();
 	}
-
 	app.UseHttpsRedirection();
 	app.UseRouting();
 	app.Services.EnsureDatabaseCreated();
@@ -69,4 +70,8 @@ catch (Exception ex) when (ex is not HostAbortedException)
 	}
 	Log.Fatal(ex, "Host terminated unexpectedly. Error: @{Message}", sb.ToString());
 
+}
+finally
+{
+	Log.CloseAndFlush();
 }

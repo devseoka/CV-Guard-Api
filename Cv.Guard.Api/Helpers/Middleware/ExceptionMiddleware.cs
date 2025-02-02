@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Cv.Guard.Api.Helpers.Middleware;
 
-public class ExceptionMiddleware(ILogger<ExceptionMiddleware> logger) : IExceptionHandler
+public class ExceptionMiddleware() : IExceptionHandler
 {
 	public async ValueTask<bool> TryHandleAsync(
 		HttpContext httpContext,
@@ -16,7 +16,7 @@ public class ExceptionMiddleware(ILogger<ExceptionMiddleware> logger) : IExcepti
 		if (exception is not NotFoundException)
 		{
 			string message = $"{exception.Message} - {exception.InnerException?.Message}";
-			logger.LogError(
+			Log.LogError(
 				exception,
 				"An unexpected error occurred while executing {Path}. Error: {ErrorMessage}",
 				httpContext.Request.Path,
