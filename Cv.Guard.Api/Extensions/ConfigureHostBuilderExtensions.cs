@@ -49,7 +49,6 @@ namespace Cv.Guard.Api.Extensions
 					   restrictedToMinimumLevel: LogEventLevel.Error
 				   )
 		   )
-		   .Build();
 			return host;
 		}
 
