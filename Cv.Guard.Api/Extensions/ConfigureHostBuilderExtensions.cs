@@ -5,6 +5,12 @@ using System.Data;
 
 public static class ConfigureHostBuilderExtensions
 {
+	/// <summary>
+	/// Configures Serilog for the WebApplicationBuilder with specified connection string.
+	/// </summary>
+	/// <param name="builder">The WebApplicationBuilder to configure.</param>
+	/// <param name="connection">The connection string for the SQL Server database.</param>
+	/// <returns>The configured WebApplicationBuilder.</returns>
 	public static WebApplicationBuilder ConfigureSerilog(this WebApplicationBuilder builder, string connection)
 	{
 		var columnOptions = new ColumnOptions
