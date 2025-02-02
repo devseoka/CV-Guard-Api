@@ -4,7 +4,6 @@ using FluentValidation;
 using IpStack.Extensions;
 using IpStack.Models;
 using Serilog;
-using Serilog.AspNetCore;
 using System.Reflection;
 using System.Text;
 
