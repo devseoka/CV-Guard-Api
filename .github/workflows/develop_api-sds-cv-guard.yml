@@ -63,7 +63,7 @@ jobs:
         run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
 
       - name: Publish API
-        run: dotnet publish ${{ env.SOLUTION_PATH }} -c Release -o ${{ env.PUBLISH_PATH }} --no-build
+        run: dotnet publish ${{ env.SOLUTION_PATH }} -c Release -o ${{ env.PUBLISH_PATH }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
