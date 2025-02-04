@@ -1,5 +1,4 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - api-sds-cv-guard
-
+name: Build and deploy Cv Guard Api
 on:
   pull_request:
     branches: [develop]
