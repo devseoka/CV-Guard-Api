@@ -3,6 +3,7 @@ using Cv.Guard.Api.Helpers.Middleware;
 using FluentValidation;
 using IpStack.Extensions;
 using IpStack.Models;
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using System.Reflection;
 using System.Text;
@@ -36,7 +37,10 @@ try
 	builder.ConfigureSerilog(connection);
 
 	var app = builder.Build();
-
+	
+	app.UseForwardedHeaders(new () {
+		ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+	});
 	app.UseSerilogRequestLogging();
 
 	app.UseCors(CORS_ORIGINS);
