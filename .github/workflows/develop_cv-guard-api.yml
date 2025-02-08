@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for CV Guard API
+name: CI/CD Pipeline for CV Guard API on Azure
 
 on:
   pull_request:
@@ -7,6 +7,7 @@ on:
 env:
   APP_SOLUTION_FILE: './CV-Guard-Api.sln'
   APP_API_PROJECT: './Cv.Guard.Api/Cv.Guard.Api.csproj'
+  APP_TEST_PROJECT: './Cv.Guard.Tests/Cv.Guard.Tests.csproj'
   PUBLISH_PATH: './publish'
   DOTNET_VER: '8.x'
   AZURE_WEBAPP_NAME: 'api-sds-cv-guard'
@@ -92,10 +93,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Build Integration Tests
-        run: dotnet build ${{ env.APP_SOLUTION_FILE }} --configuration Debug
+        run: dotnet build ${{ env.APP_TEST_PROJECT}} --configuration Release
 
       - name: Run Integration Tests
-        run: dotnet test ${{ env.APP_SOLUTION_FILE }} --configuration Debug --no-build
+        run: dotnet test ${{ env.APP_TEST_PROJECT }} --configuration Release --no-build --verbosity normal
 
   deploy:
     name: Deploy to Azure Web App
