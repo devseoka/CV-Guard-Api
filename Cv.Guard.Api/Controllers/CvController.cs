@@ -9,6 +9,7 @@ using Cv.Guard.Api.Core.Atrributes;
 using Cv.Guard.Api.Core.Dto;
 using Cv.Guard.Api.Core.Exceptions;
 using Cv.Guard.Api.Core.Models;
+using Cv.Guard.Api.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -36,7 +37,7 @@ namespace Cv.Guard.Api.Controllers
 		[Consumes("multipart/form-data")]
 		public async Task<IActionResult> Upload(IFormFile file, [FromQuery] string initials)
 		{
-			uploadValidator.ValidateAndThrow(new UploadRequest { File = file, Initials = initials });
+			uploadValidator.ValidateAndThrowConflictException(new UploadRequest { File = file, Initials = initials });
 
 			var upload = mapper.Map<Upload>(file);
 			var firstRandomSegment = GenerateRandomString(8);
@@ -70,7 +71,7 @@ namespace Cv.Guard.Api.Controllers
 		[ApiKey]
 		public async Task<IActionResult> Download([FromBody] EmailRequest request)
 		{
-			emailValidator.ValidateAndThrow(request);
+			emailValidator.ValidateAndThrowConflictException(request);
 			string domain = request.Email.Split('@').Last();
 
 			var ipAddresses = Dns.GetHostAddresses(domain);
