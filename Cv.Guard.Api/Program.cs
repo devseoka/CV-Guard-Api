@@ -13,6 +13,7 @@ try
 	const string CORS_ORIGINS = "CV.Guard.Api-CORS-Origins";
 
 	builder.Services.ConfigureOptions(builder.Configuration);
+	builder.Services.ConfigureAzureBlobClient(builder.Configuration);
 	builder.Services.ConfigureExternalServices();
 
 	string connection = builder.Configuration.GetConnectionString("DefaultConnection");
