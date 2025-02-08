@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for CV Guard API
+name: CI/CD Pipeline for CV Guard API on Azure
 
 on:
   pull_request:
@@ -7,6 +7,7 @@ on:
 env:
   APP_SOLUTION_FILE: './CV-Guard-Api.sln'
   APP_API_PROJECT: './Cv.Guard.Api/Cv.Guard.Api.csproj'
+  APP_TEST_PROJECT: './Cv.Guard.Tests/Cv.Guard.Tests.csproj'
   PUBLISH_PATH: './publish'
   DOTNET_VER: '8.x'
   AZURE_WEBAPP_NAME: 'api-sds-cv-guard'
@@ -44,8 +45,8 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore ${{ env.APP_SOLUTION_FILE }}
 
-      - name: Validate appsettings.json
-        if: github.ref == 'refs/heads/develop'
+      - name: Validate Build Settings
+        if: github.base_ref == 'develop'
         run: |
           if (!(Test-Path './Cv.Guard.Api/appsettings.json')) {
             Write-Host "Error: appsettings.json not found!"
@@ -53,7 +54,7 @@ jobs:
           }
         shell: pwsh
 
-      - name: Configure appsettings.json
+      - name: Configure Build Settings
         run: |
           $config = Get-Content ./Cv.Guard.Api/appsettings.json | ConvertFrom-Json
           $config.ConnectionStrings.DefaultConnection = "${{ secrets.AZURE_SQL_SERVER_CONNECTION_STRING }}"
@@ -91,8 +92,11 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Build Integration Tests
+        run: dotnet build ${{ env.APP_TEST_PROJECT}} --configuration Release
+
       - name: Run Integration Tests
-        run: dotnet test ${{ env.APP_SOLUTION_FILE }} --no-build --verbosity normal
+        run: dotnet test ${{ env.APP_TEST_PROJECT }} --configuration Release --no-build --verbosity normal
 
   deploy:
     name: Deploy to Azure Web App

@@ -42,16 +42,18 @@ namespace Cv.Guard.Api.Extensions
 			);
 			services.AddSingleton((sp) =>
 			{
-				var azureBlobSettings = sp.GetRequiredService<IOptions<AzureBlobConfig>>().Value;
-				var client = new BlobServiceClient(azureBlobSettings.ConnectionString);
-				return client;
-			});
-			services.AddSingleton((sp) =>
-			{
 				var client = sp.GetRequiredService<BlobServiceClient>();
 				var azureBlobSettings = sp.GetRequiredService<IOptions<AzureBlobConfig>>().Value;
 				var containerClient = client.GetBlobContainerClient(azureBlobSettings.Name);
 				return containerClient;
+			});
+			return services;
+		}
+		public static IServiceCollection ConfigureAzureBlobClient(this IServiceCollection services, IConfiguration configuration){
+			
+			var options = configuration.GetSection("AzureBlob").Get<AzureBlobConfig>();
+			services.AddAzureClients((config) => {
+				config.AddBlobServiceClient(options.ConnectionString);
 			});
 			return services;
 		}

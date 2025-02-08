@@ -13,9 +13,9 @@ namespace Cv.Guard.Api.Extensions
 			{
 				Exception = { ColumnName = "ExceptionDetails" },
 				Level = { ColumnName = "LogLevel", DataType = SqlDbType.NVarChar, DataLength = 50 },
-				PrimaryKey = { ColumnName = "Id", DataType = SqlDbType.UniqueIdentifier },
 				MessageTemplate = { ColumnName = "MessageTemplate", DataType = SqlDbType.NVarChar, DataLength = -1 },
 				Message = { ColumnName = "Message", DataType = SqlDbType.NVarChar, DataLength = -1 }
+
 			};
 
 			var sinkOptions = new MSSqlServerSinkOptions
