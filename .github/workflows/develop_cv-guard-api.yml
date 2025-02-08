@@ -4,6 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, closed]
     branches: [develop]
+  workflow_dispatch: # Allows manual triggering of the workflow
+
 env:
   APP_SOLUTION_FILE: './CV-Guard-Api.sln'
   APP_API_PROJECT: './Cv.Guard.Api/Cv.Guard.Api.csproj'
@@ -79,7 +81,7 @@ jobs:
 
   integration-tests:
     name: Run Integration Tests
-    if: github.event.action != 'closed' || github.event.pull_request.merged != true
+    if: github.event.action != 'closed' # Run only if PR is opened or synchronized
     runs-on: windows-latest
     needs: [build]
 
@@ -100,7 +102,7 @@ jobs:
 
   deploy:
     name: Deploy to Azure Web App
-    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    if:  (github.event_name == 'workflow_dispatch') ||  (github.event.action == 'closed' && github.event.pull_request.merged == true) # Auto-deploy on PR merge
     runs-on: windows-latest
     needs: [integration-tests]
     environment:
