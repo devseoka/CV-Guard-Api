@@ -45,8 +45,8 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore ${{ env.APP_SOLUTION_FILE }}
 
-      - name: Validate appsettings.json
-        if: github.ref == 'refs/heads/develop'
+      - name: Validate Build Settings
+        if: github.base_ref == 'develop'
         run: |
           if (!(Test-Path './Cv.Guard.Api/appsettings.json')) {
             Write-Host "Error: appsettings.json not found!"
@@ -54,7 +54,7 @@ jobs:
           }
         shell: pwsh
 
-      - name: Configure appsettings.json
+      - name: Configure Build Settings
         run: |
           $config = Get-Content ./Cv.Guard.Api/appsettings.json | ConvertFrom-Json
           $config.ConnectionStrings.DefaultConnection = "${{ secrets.AZURE_SQL_SERVER_CONNECTION_STRING }}"
