@@ -151,24 +151,36 @@ namespace Cv.Guard.Api.Controllers
 		{
 			if (request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))
 			{
-				var clientIp = forwardedFor.ToString().Split(',')[0].Trim();
-
-				if (!IPAddress.TryParse(clientIp, out _))
+				var forwardedString = forwardedFor.ToString();
+				if (!string.IsNullOrWhiteSpace(forwardedString))
 				{
-					throw new BadRequestException("Unable to determine the client's IP address. The 'X-Forwarded-For' header contains an invalid IP address.");
+					var ips = forwardedString.Split(',', StringSplitOptions.RemoveEmptyEntries);
+					if (ips.Length > 0)
+					{
+						var clientIp = ips[0].Trim();
+						if (IPAddress.TryParse(clientIp, out _))
+						{
+							return clientIp;
+						}
+					}
+				}
+			}
+			var remoteIp = request.HttpContext.Connection.RemoteIpAddress;
+			if (remoteIp != null)
+			{
+				if (IPAddress.IsLoopback(remoteIp))
+				{
+					return "127.0.0.1";
+				}
+				if (remoteIp.IsIPv4MappedToIPv6)
+				{
+					remoteIp = remoteIp.MapToIPv4();
 				}
 
-				return clientIp;
+				return remoteIp.ToString();
 			}
 
-			var remoteIp = request.HttpContext.Connection.RemoteIpAddress?.ToString();
-
-			if (string.IsNullOrEmpty(remoteIp))
-			{
-				throw new BadRequestException("Unable to determine the client's IP address. No valid IP address was found in the request.");
-			}
-
-			return remoteIp;
+			throw new BadRequestException("Unable to determine the client's IP address. No valid IP address was found in the request.");
 		}
 	}
 }
