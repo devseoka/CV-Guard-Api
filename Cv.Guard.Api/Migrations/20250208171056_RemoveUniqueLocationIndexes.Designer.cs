@@ -4,6 +4,7 @@ using Cv.Guard.Api;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Cv.Guard.Api.Migrations
 {
     [DbContext(typeof(CvgaContext))]
-    partial class CvgaContextModelSnapshot : ModelSnapshot
+    [Migration("20250208171056_RemoveUniqueLocationIndexes")]
+    partial class RemoveUniqueLocationIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
