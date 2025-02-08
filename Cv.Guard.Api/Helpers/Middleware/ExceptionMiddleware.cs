@@ -32,6 +32,7 @@ public class ExceptionMiddleware() : IExceptionHandler
 	{
 		context.Response.ContentType = "appplication/json";
 		var error = new ProblemDetails { Detail = ex.Message, Instance = context.Request.Path };
+		error.Extensions["exception"] = ex;
 		switch (ex)
 		{
 			case BaseException exception:
