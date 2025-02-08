@@ -5,7 +5,7 @@ namespace Cv.Guard.Api.Extensions
 {
 	public static class FluentValidationExtensions
 	{
-		public static void ValidateAndThrowArgumentException<T>(this IValidator<T> validator, T instance)
+		public static void ValidateAndThrowConflictException<T>(this IValidator<T> validator, T instance)
 		{
 			var res = validator.Validate(instance);
 

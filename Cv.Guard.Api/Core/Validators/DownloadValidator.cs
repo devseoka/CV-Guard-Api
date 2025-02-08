@@ -37,7 +37,7 @@ namespace Cv.Guard.Api.Core.Validators
 				.WithMessage("Invalid email format.")
 				.Must(email => !IsFreeEmailProvider(email))
 				.WithMessage(
-					"Email from free email providers is not allowed. Use custom domains, i.e user@abc-company.com"
+					"Email from free email providers is not allowed. Use custom domains, i.e user@company.com"
 				);
 			RuleFor(x => x.Name)
 				.NotEmpty()
@@ -47,11 +47,10 @@ namespace Cv.Guard.Api.Core.Validators
 				.Length(2, 100)
 				.WithMessage("Full Name must be between 2 and 100 characters.");
 		}
-
 		private bool IsFreeEmailProvider(string email)
 		{
-			var domain = email?.Split('@').LastOrDefault()?.ToLowerInvariant();
-			return _freeEmailDomains.Any(freeDomain => domain?.EndsWith(freeDomain) == true);
+			var domain = $"@{email?.Split('@').LastOrDefault()?.ToLowerInvariant()}";
+			return _freeEmailDomains.Exists(name => name == domain);
 		}
 	}
 }
