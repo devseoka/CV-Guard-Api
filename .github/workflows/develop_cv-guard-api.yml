@@ -1,89 +1,118 @@
-name: Build, Test And Deploy Cv Guard Api
+name: CI/CD Pipeline for CV Guard API
+
 on:
   pull_request:
     types: [opened, synchronize, closed]
     branches: [develop]
+
 env:
   APP_SOLUTION_FILE: './CV-Guard-Api.sln'
   APP_API_PROJECT: './Cv.Guard.Api/Cv.Guard.Api.csproj'
   PUBLISH_PATH: './publish'
   DOTNET_VER: '8.x'
-  AZURE_WEBAPP_NAME: api-sds-cv-guard
+  AZURE_WEBAPP_NAME: 'api-sds-cv-guard'
 
 jobs:
-  restore-and-build:
+  build:
+    name: Build and Publish Application
     runs-on: windows-latest
     permissions:
       contents: read
+
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4 
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Up .NET
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'           
-      
-      - name: Cache Nuget packages
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet Packages
         uses: actions/cache@v3
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/packages.config', '**/*.csproj') }}
           restore-keys: ${{ runner.os }}-nuget-
-      
-      - name: Cache build outputs
+
+      - name: Cache Build Outputs
         uses: actions/cache@v3
         with:
           path: "**/bin\n**/obj"
           key: ${{ runner.os }}-build-${{ github.sha }}
           restore-keys: ${{ runner.os }}-build-
-      
-      - name: Restore dependencies
-        run: dotnet restore ${{env.APP_SOLUTION_FILE}}
-      
-      - name: Build
-        run: dotnet build --configuration Release ${{env.APP_SOLUTION_FILE}}
-      
-      - name: Publish
-        run: dotnet publish ${{env.APP_API_PROJECT}} -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
-      - name: Upload artifact for deployment job
+      - name: Restore Dependencies
+        run: dotnet restore ${{ env.APP_SOLUTION_FILE }}
+
+      - name: Validate appsettings.json
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          if (!(Test-Path './Cv.Guard.Api/appsettings.json')) {
+            Write-Host "Error: appsettings.json not found!"
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Configure appsettings.json
+        run: |
+          $config = Get-Content ./Cv.Guard.Api/appsettings.json | ConvertFrom-Json
+          $config.ConnectionStrings.DefaultConnection = "${{ secrets.AZURE_SQL_SERVER_CONNECTION_STRING }}"
+          $config.AzureBlob.ConnectionString = "${{ secrets.AZURE_FILE_STORAGE_CONNECTION_STRING }}"
+          $config.AzureBlob.Name = "${{ secrets.AZURE_FILE_STORAGE_CONTAINER_NAME }}"
+          $config.Postmark.Key = "${{ secrets.POSTMARK_API_KEY }}"
+          $config.IpStack.ApiKey = "${{ secrets.IPSTACK_API_KEY }}"
+          $config | ConvertTo-Json -Depth 10 | Set-Content ./Cv.Guard.Api/appsettings.json
+        shell: pwsh
+
+      - name: Build Application
+        run: dotnet build --configuration Release ${{ env.APP_SOLUTION_FILE }}
+
+      - name: Publish Application
+        run: dotnet publish ${{ env.APP_API_PROJECT }} -c Release -o "${{ env.DOTNET_ROOT }}/${{env.AZURE_WEBAPP_NAME}}"
+
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
-  
-  integration-test:
+          path: ${{ env.DOTNET_ROOT }}/${{env.AZURE_WEBAPP_NAME}}
+
+  integration-tests:
+    name: Run Integration Tests
     if: github.event.action != 'closed' || github.event.pull_request.merged != true
     runs-on: windows-latest
-    needs: [restore-and-build]
+    needs: [build]
+
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup .NET
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Up .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      
-      - name: Test
-        run: dotnet test ${{env.APP_SOLUTION_FILE}} --no-build --verbosity normal
-  
+
+      - name: Run Integration Tests
+        run: dotnet test ${{ env.APP_SOLUTION_FILE }} --no-build --verbosity normal
+
   deploy:
+    name: Deploy to Azure Web App
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: windows-latest
-    needs: [integration-test]
+    needs: [integration-tests]
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
       id-token: write
       contents: read
-    
+
     steps:
-      - name: Download artifact from build job
+      - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
