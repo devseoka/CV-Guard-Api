@@ -8,8 +8,12 @@ namespace Cv.Guard.Api.Core.Configuration
 	{
 		public void Configure(EntityTypeBuilder<Location> builder)
 		{
-			builder.HasIndex(l => l.City).HasDatabaseName("IX_Locations_City").IsUnique();
-			builder.HasIndex(l => l.Region).HasDatabaseName("IX_Locations_Region").IsUnique();
+			builder
+				.HasIndex(l => l.City)
+				.IsUnique(false);
+			builder
+				.HasIndex(l => l.Region)
+				.IsUnique(false);
 		}
 	}
 }
