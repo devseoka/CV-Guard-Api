@@ -1,6 +1,8 @@
 name: CI/CD Pipeline for CV Guard API on Azure
 
 on:
+  push:
+    branches: [develop]
   pull_request:
     types: [opened, synchronize, closed]
     branches: [develop]
@@ -102,7 +104,6 @@ jobs:
 
   deploy:
     name: Deploy to Azure Web App
-    if:  (github.event_name == 'workflow_dispatch') ||  (github.event.action == 'closed' && github.event.pull_request.merged == true) # Auto-deploy on PR merge
     runs-on: windows-latest
     needs: [integration-tests]
     environment:
