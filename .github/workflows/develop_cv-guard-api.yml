@@ -4,7 +4,6 @@ on:
   pull_request:
     types: [opened, synchronize, closed]
     branches: [develop]
-
 env:
   APP_SOLUTION_FILE: './CV-Guard-Api.sln'
   APP_API_PROJECT: './Cv.Guard.Api/Cv.Guard.Api.csproj'

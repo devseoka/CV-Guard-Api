@@ -9,6 +9,7 @@ using Cv.Guard.Api.Helpers.Filters;
 using Cv.Guard.Api.Services;
 using IpStack.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
@@ -47,8 +48,8 @@ namespace Cv.Guard.Api.Extensions
 			});
 			services.AddSingleton((sp) =>
 			{
+				var client = sp.GetRequiredService<BlobServiceClient>();
 				var azureBlobSettings = sp.GetRequiredService<IOptions<AzureBlobConfig>>().Value;
-				var client = new BlobServiceClient(azureBlobSettings.ConnectionString);
 				var containerClient = client.GetBlobContainerClient(azureBlobSettings.Name);
 				return containerClient;
 			});
