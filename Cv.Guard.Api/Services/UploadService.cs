@@ -31,7 +31,6 @@ namespace Cv.Guard.Api.Services
 			var blobClient = containerClient.GetBlobClient(name);
 			_ = await blobClient.UploadAsync(stream, overwrite: true);
 			return blobClient.Uri.ToString();
-			throw new NotImplementedException();
 		}
 
 		private async Task<BlobContainerClient> GetContainerAsync(string name)
