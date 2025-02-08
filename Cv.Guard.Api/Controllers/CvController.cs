@@ -149,38 +149,25 @@ namespace Cv.Guard.Api.Controllers
 		}
 		private static string GetClientIpAddress(HttpRequest request)
 		{
-			if (request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))
+			if (request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor) &&
+				!string.IsNullOrWhiteSpace(forwardedFor.ToString()))
 			{
-				var forwardedString = forwardedFor.ToString();
-				if (!string.IsNullOrWhiteSpace(forwardedString))
+				var ips = forwardedFor.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries).Select(ip => ip.Trim());
+				foreach (var ip in ips)
 				{
-					var ips = forwardedString.Split(',', StringSplitOptions.RemoveEmptyEntries);
-					if (ips.Length > 0)
+					if (IPAddress.TryParse(ip, out _))
 					{
-						var clientIp = ips[0].Trim();
-						if (IPAddress.TryParse(clientIp, out _))
-						{
-							return clientIp;
-						}
+						return ip;
 					}
 				}
 			}
 			var remoteIp = request.HttpContext.Connection.RemoteIpAddress;
 			if (remoteIp != null)
 			{
-				if (IPAddress.IsLoopback(remoteIp))
-				{
-					return "127.0.0.1";
-				}
-				if (remoteIp.IsIPv4MappedToIPv6)
-				{
-					remoteIp = remoteIp.MapToIPv4();
-				}
-
-				return remoteIp.ToString();
+				return remoteIp.IsIPv4MappedToIPv6 ? remoteIp.MapToIPv4().ToString() : remoteIp.ToString();
 			}
-
 			throw new BadRequestException("Unable to determine the client's IP address. No valid IP address was found in the request.");
 		}
+
 	}
 }
